@@ -356,26 +356,47 @@ open class usb_teensy: NSObject
       // Test Array to generate some Test Data
       //var testData = Data(bytes: UnsafePointer<UInt8>(testArray),count: testArray.count)
       
-//      write_byteArray[0] = testArray[0]
-     // write_byteArray[1] = testArray[1]
-      //write_byteArray[2] = testArray[2]
-         
-      //testArray[0] += 1
-     // testArray[1] += 1
-      //testArray[2] += 1
-
-         //println("write_byteArray: \(write_byteArray)")
-         print("write_byteArray in send_USB: ", terminator: "")
-
-         for  i in 0...16
-         {
-            print(" \(write_byteArray[i])", terminator: "\t")
-         }
-         print("")
-
-         let senderfolg = rawhid_send(0,&write_byteArray, Int32(BUFFER_SIZE), 50)
-
-         if hid_usbstatus == 0
+      write_byteArray[0] = testArray[0]
+      write_byteArray[1] = testArray[1]
+      write_byteArray[2] = testArray[2]
+      
+      if (testArray[0] < 0xFF)
+      {
+         testArray[0] += 1
+      }
+      else
+      {
+         testArray[0] = 0;
+      }
+      if (testArray[1] < 0xFF)
+      {
+         testArray[1] += 1
+      }
+      else
+      {
+         testArray[1] = 0;
+      }
+      if (testArray[2] < 0xFF)
+      {
+         testArray[2] += 1
+      }
+      else
+      {
+         testArray[2] = 0;
+      }
+      
+      //println("write_byteArray: \(write_byteArray)")
+      print("write_byteArray in send_USB: ", terminator: "")
+      
+      for  i in 0...16
+      {
+         print(" \(write_byteArray[i])", terminator: "\t")
+      }
+      print("")
+      
+      let senderfolg = rawhid_send(0,&write_byteArray, Int32(BUFFER_SIZE), 50)
+      
+      if hid_usbstatus == 0
       {
          print("hid_usbstatus 0: \(hid_usbstatus)")
       }
@@ -393,12 +414,13 @@ open class usb_teensy: NSObject
    
    open func rep_read_USB(_ inTimer: Timer)
    {
-         
-         
-         
-         
-   }
-   
+      var result:Int32  = 0;
+      var reportSize:Int = 32;   
+      var buffer = [UInt8]();
+      result = rawhid_recv(0, &buffer, 64, 50);
+
+      var dataRead:Data = Data(bytes:buffer)
+         print(dataRead as NSData);   
 }
 
 

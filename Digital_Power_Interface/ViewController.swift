@@ -82,13 +82,16 @@ class ViewController: NSViewController
       let pos = sender.floatValue
       let u = pos / Float(sender.maxValue) * 5.12
       let Ustring = formatter.string(from: NSNumber(value: u))
-      print("report_U_Slider u: \(u) Ustring: \(Ustring)")
+      print("report_U_Slider u: \(u) Ustring: \(Ustring ?? "0")")
       setU_Feld.stringValue  = Ustring!
       let intpos = sender.intValue 
+      print("report_U_Slider")
       teensy.write_byteArray[4] = UInt8((intpos & 0x00FF) & 0xFF)
       teensy.write_byteArray[5] = UInt8((intpos & 0xFF00) >> 8)
-      var senderfolg = teensy.send_USB()
-
+      if (usbstatus > 0)
+      {
+         let senderfolg = teensy.send_USB()
+      }
    }
    
    @IBAction func report_set_U(_ sender: AnyObject)
@@ -96,7 +99,7 @@ class ViewController: NSViewController
       teensy.write_byteArray[0] = SET_U // Code 
       
       // senden mit faktor 1000
-      let u = setU_Feld.floatValue 
+      //let u = setU_Feld.floatValue 
       let U = setU_Feld.floatValue * 1000
       let intU = UInt(U)
       
@@ -108,11 +111,13 @@ class ViewController: NSViewController
       teensy.write_byteArray[2] = UInt8(U_LO)
       teensy.write_byteArray[3] = UInt8(U_HI)
       
-      
-      var senderfolg = teensy.send_USB()
-      if (senderfolg < BUFFER_SIZE)
-      {
-         print("report_set_U U:")
+       if (usbstatus > 0)
+       {
+         let senderfolg = teensy.send_USB()
+         if (senderfolg < BUFFER_SIZE)
+         {
+            print("report_set_U U: %d",senderfolg)
+         }
       }
    }
 
