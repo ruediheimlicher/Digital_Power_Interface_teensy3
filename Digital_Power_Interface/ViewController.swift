@@ -9,6 +9,7 @@
 
 import Cocoa
 
+ public var lastDataRead = Data.init(count:64)
 
 class ViewController: NSViewController
 {
@@ -22,7 +23,9 @@ class ViewController: NSViewController
    @IBOutlet weak var manufactorer: NSTextField!
    @IBOutlet weak var Counter: NSTextField!
    
-   @IBOutlet weak var Start: NSButton!
+   @IBOutlet weak var Start_Knopf: NSButton!
+   @IBOutlet weak var Stop_Knopf: NSButton!
+   @IBOutlet weak var Send_Knopf: NSButton!
    
    
    @IBOutlet weak var Anzeige: NSTextField!
@@ -32,7 +35,7 @@ class ViewController: NSViewController
    @IBOutlet weak var check_USB_Knopf: NSButton!
 
    
-   @IBOutlet weak var start_read_USB_Knopf: NSButtonCell!
+   //@IBOutlet weak var start_read_USB_Knopf: NSButtonCell!
    
    @IBOutlet weak var codeFeld: NSTextField!
    
@@ -53,6 +56,8 @@ class ViewController: NSViewController
    let GET_I:UInt8 = 0xB2
    
    
+  
+   
    override func viewDidLoad()
    {
       super.viewDidLoad()
@@ -66,8 +71,71 @@ class ViewController: NSViewController
 
       //USB_OK.backgroundColor = NSColor.greenColor()
       // Do any additional setup after loading the view.
+      let newdataname = Notification.Name("newdata")
+      NotificationCenter.default.addObserver(self, selector:#selector(newDataAktion(_:)),name:newdataname,object:nil)
    }
    
+   @objc func newDataAktion(_ notification:Notification) 
+   {
+      let lastData = teensy.getlastDataRead()
+      print("lastData:\t \(lastData[1])\t\(lastData[2])   ")
+      var ii = 0
+      while ii < 10
+      {
+         //print("ii: \(ii)  wert: \(lastData[ii])\t")
+         ii = ii+1
+      }
+      
+      let u = ((Int32(lastData[1])<<8) + Int32(lastData[2]))
+      //print("hb: \(lastData[1]) lb: \(lastData[2]) u: \(u)")
+      U_Feld.intValue = u
+      let info = notification.userInfo
+      
+      //print("info: \(String(describing: info))")
+      //print("new Data")
+      let data = notification.userInfo?["data"]
+      //print("data: \(String(describing: data)) \n") // data: Optional([0, 9, 51, 0,....
+      
+      
+      //print("lastDataRead: \(lastDataRead)   ")
+      var i = 0
+      while i < 10
+      {
+         //print("i: \(i)  wert: \(lastDataRead[i])\t")
+         i = i+1
+      }
+
+      if let d = notification.userInfo!["usbdata"]
+      {
+            
+         //print("d: \(d)\n") // d: [0, 9, 56, 0, 0,... 
+         let t = type(of:d)
+         //print("typ: \(t)\n") // typ: Array<UInt8>
+         
+         //print("element: \(d[1])\n")
+         
+         
+         //print("d as string: \(String(describing: d))\n")
+         if d != nil
+         {
+            //print("d not nil\n")
+            var i = 0
+            while i < 10
+            {
+               //print("i: \(i)  wert: \(d![i])\t")
+               i = i+1
+            }
+            
+         }
+        
+         
+         //print("dic end\n")
+      }
+      
+      //let dic = notification.userInfo as? [String:[UInt8]]
+      //print("dic: \(dic ?? ["a":[123]])\n")
+
+   }
    func tester(_ timer: Timer)
    {
       let theStringToPrint = timer.userInfo as! String
@@ -86,8 +154,9 @@ class ViewController: NSViewController
       setU_Feld.stringValue  = Ustring!
       let intpos = sender.intValue 
       print("report_U_Slider")
-      teensy.write_byteArray[4] = UInt8((intpos & 0x00FF) & 0xFF)
-      teensy.write_byteArray[5] = UInt8((intpos & 0xFF00) >> 8)
+      teensy.write_byteArray[4] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[5] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      
       if (usbstatus > 0)
       {
          let senderfolg = teensy.send_USB()
@@ -130,8 +199,24 @@ class ViewController: NSViewController
    @IBAction func report_start_read_USB(_ sender: AnyObject)
    {
       //myUSBController.startRead(1)
-      teensy.start_read_USB(true)
-      
+      if teensy.dev_present() > 0
+      {
+         teensy.start_read_USB(true)
+         Start_Knopf.isEnabled = false
+         Stop_Knopf.isEnabled = true
+
+      }
+      else
+      {
+         let warnung = NSAlert.init()
+         warnung.messageText = "USB"
+         warnung.messageText = "Kein USB-Device"
+         warnung.addButton(withTitle: "OK")
+         warnung.runModal()
+         Start_Knopf.isEnabled = false
+         Stop_Knopf.isEnabled = false
+
+      }
       
       //teensy.start_teensy_Timer()
       
@@ -152,6 +237,12 @@ class ViewController: NSViewController
          print("status 1")
          USB_OK.backgroundColor = NSColor.green
          print("USB-Device da")
+         let warnung = NSAlert.init()
+         warnung.messageText = "USB"
+         warnung.messageText = "USB-Device ist da"
+         warnung.addButton(withTitle: "OK")
+         warnung.runModal()
+
          let manu = get_manu()
          //println(manu) // ok, Zahl
 //         var manustring = UnsafePointer<CUnsignedChar>(manu)
@@ -162,35 +253,71 @@ class ViewController: NSViewController
          manufactorer.stringValue = manufactorername
          
          //manufactorer.stringValue = "Manufactorer: " + teensy.manufactorer()!
+         Start_Knopf.isEnabled = true
+         Send_Knopf.isEnabled = true
       }
       else
          
       {
          print("status 0")
+         let warnung = NSAlert.init()
+         warnung.messageText = "USB"
+         warnung.messageText = "Kein USB-Device"
+         warnung.addButton(withTitle: "OK")
+         warnung.runModal()
+         
          if let taste = USB_OK
          {
             print("Taste USB_OK ist nicht nil")
             taste.backgroundColor = NSColor.red
          //USB_OK.backgroundColor = NSColor.redColor()
+            
          }
          else
          {
             print("Taste USB_OK ist nil")
          }
+         Start_Knopf.isEnabled = false
+         Stop_Knopf.isEnabled = false
+         Send_Knopf.isEnabled = false
+         return
       }
       print("antwort: \(teensy.status())")
    }
    
-   @IBAction func stop_read_USB(_ sender: AnyObject)
+   @IBAction func report_stop_read_USB(_ sender: AnyObject)
    {
       teensy.read_OK = false
+      if teensy.dev_present() > 0
+      {
+         Start_Knopf.isEnabled = true
+         Send_Knopf.isEnabled = true
+      }
+      else
+      {
+         Start_Knopf.isEnabled = false
+      }
+      Stop_Knopf.isEnabled = false
+
    }
    
    @IBAction func send_USB(_ sender: AnyObject)
    {
       //NSBeep()
-      
-      var senderfolg = teensy.send_USB()
+      if teensy.dev_present() > 0
+      {
+         var senderfolg = teensy.send_USB()
+      }
+      else
+      {
+         let warnung = NSAlert.init()
+         warnung.messageText = "USB"
+         warnung.messageText = "Kein USB-Device"
+         warnung.addButton(withTitle: "OK")
+         warnung.runModal()
+         Send_Knopf.isEnabled = false
+
+      }
       
       //println("send_USB senderfolg: \(senderfolg)")
       

@@ -112,6 +112,11 @@ open class usb_teensy: NSObject
       return hid_usbstatus
    }
    
+   open func dev_present()->Int32
+   {
+      return usb_present()
+   }
+   
    /*
     func appendCRLFAndConvertToUTF8_1(_ s: String) -> Data {
     let crlfString: NSString = s + "\r\n" as NSString
@@ -143,10 +148,16 @@ open class usb_teensy: NSObject
     return timerDic as NSDictionary
     }
     */
+   
+   open func getlastDataRead()->Data
+   {
+      return lastDataRead
+   }
+   
    open func start_read_USB(_ cont: Bool)-> Int
    {
       read_OK = ObjCBool(cont)
-      let timerDic:NSMutableDictionary  = ["count": 0]
+      var timerDic:NSMutableDictionary  = ["count": 0]
       
       let result = rawhid_recv(0, &read_byteArray, Int32(BUFFER_SIZE), 50);
       
@@ -246,26 +257,26 @@ open class usb_teensy: NSObject
          var result = rawhid_recv(0, &read_byteArray, Int32(BUFFER_SIZE), 50)
          
          
-         //        print("*cont_read_USB result: \(result)")
-         //         print("tempbyteArray in Timer: *\(read_byteArray)*")
-         // var timerdic: [String: Int]
+         //print("*cont_read_USB result: \(result)")
+         //print("tempbyteArray in Timer: *\(read_byteArray)*")
+        // var timerdic: [String: Int]
          
-         /*
+         
           if  var dic = timer.userInfo as? NSMutableDictionary
           {
-          if var count:Int = timer.userInfo?["count"] as? Int
+            if var count:Int = dic["count"] as? Int 
           {
           count = count + 1
           dic["count"] = count
           //dic["nr"] = count+2
           //println(dic)
-          usb_count += 1
+          //usb_count += 1
           }
           }
-          */
-         //      let timerdic:Dictionary<String,Int!> = timer.userInfo as Dictionary<String,Int!>
+          
+         let timerdic:Dictionary<String,Int?> = timer.userInfo as! Dictionary<String,Int?>
          //let messageString = userInfo["message"]
-         //       var tempcount = timerdic["count"]!
+         var tempcount = timerdic["count"]!
          
          //timer.userInfo["count"] = tempcount + 1
          
@@ -294,15 +305,27 @@ open class usb_teensy: NSObject
          if !(last_read_byteArray == read_byteArray)
          {
             last_read_byteArray = read_byteArray
+            lastDataRead = Data(bytes:read_byteArray)
+            let usbData = Data(bytes:read_byteArray)
             new_Data = true
             datatruecounter += 1
             let codehex = read_byteArray[0]
             
+            print("+++ new read_byteArray in Timer:", terminator: "")
+            for  i in 0...16
+            {
+               print(" \(read_byteArray[i])", terminator: "")
+            }
+            print("")
+
             // http://dev.iachieved.it/iachievedit/notifications-and-userinfo-with-swift-3-0/
+            
+            //let usbdic = ["message":"neue Daten", "data":read_byteArray] as [String : UInt8]
             let nc = NotificationCenter.default
+            
             nc.post(name:Notification.Name(rawValue:"newdata"),
                     object: nil,
-                    userInfo: ["message":"neue Daten", "data":read_byteArray])
+                    userInfo: ["message":"neue Daten", "data":read_byteArray, "usbdata":usbData])
             
             // print("+ new read_byteArray in Timer:", terminator: "")
             //for  i in 0...31
@@ -343,7 +366,7 @@ open class usb_teensy: NSObject
       }
    }
    
-   open func stop_read_USB(_ inTimer: Timer)
+   open func report_stop_read_USB(_ inTimer: Timer)
    {
       read_OK = false
    }
@@ -420,6 +443,10 @@ open class usb_teensy: NSObject
       result = rawhid_recv(0, &buffer, 64, 50);
       
       var dataRead:Data = Data(bytes:buffer)
+      if (dataRead != lastDataRead)
+      {
+         print("neue Daten")
+      }
       print(dataRead as NSData);   
       
       
