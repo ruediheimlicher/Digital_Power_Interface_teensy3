@@ -26,7 +26,7 @@ class ViewController: NSViewController
    @IBOutlet weak var Start_Knopf: NSButton!
    @IBOutlet weak var Stop_Knopf: NSButton!
    @IBOutlet weak var Send_Knopf: NSButton!
-   
+   @IBOutlet weak var Start_Read_Knopf: NSButton!
    
    @IBOutlet weak var Anzeige: NSTextField!
    
@@ -42,10 +42,13 @@ class ViewController: NSViewController
    @IBOutlet weak var dataFeld: NSTextField!
    @IBOutlet weak var setU_Feld: NSTextField!
    @IBOutlet weak var setU_Slider: NSSlider!
+   @IBOutlet weak var setU_Stepper: NSStepper!
    @IBOutlet weak var U_Feld: NSTextField!
+   
    @IBOutlet weak var setI_Feld: NSTextField!
    @IBOutlet weak var I_Feld: NSTextField!
    @IBOutlet weak var setI_Slider: NSSlider!
+   @IBOutlet weak var setI_Stepper: NSStepper!
 
    var formatter = NumberFormatter()
    
@@ -55,7 +58,8 @@ class ViewController: NSViewController
    let GET_U:UInt8 = 0xA2
    let GET_I:UInt8 = 0xB2
    
-   
+   let U_DIVIDER:Float = 9.8
+   let ADC_REF:Float = 3.26
   
    
    override func viewDidLoad()
@@ -64,8 +68,8 @@ class ViewController: NSViewController
       
       _ = Hello()
  
-      formatter.maximumFractionDigits = 3
-      formatter.minimumFractionDigits = 3
+      formatter.maximumFractionDigits = 1
+      formatter.minimumFractionDigits = 1
        formatter.minimumIntegerDigits = 1
       //formatter.roundingMode = .down
 
@@ -142,28 +146,104 @@ class ViewController: NSViewController
       print(theStringToPrint)
    }
    
-   @IBAction func report_U_Slider(_ sender: NSSlider)
+   @IBAction func report_I_Slider(_ sender: NSSlider)
    {
-      teensy.write_byteArray[0] = SET_U // Code 
-      print("report_U_Slider IntVal: \(sender.intValue)")
+      teensy.write_byteArray[0] = SET_I // Code 
+      print("report_I_Slider IntVal: \(sender.intValue)")
       
       let pos = sender.floatValue
-      let u = pos / Float(sender.maxValue) * 5.12
-      let Ustring = formatter.string(from: NSNumber(value: u))
-      print("report_U_Slider u: \(u) Ustring: \(Ustring ?? "0")")
-      setU_Feld.stringValue  = Ustring!
+      let i = pos / Float(sender.maxValue) * 5.12
+      let Istring = formatter.string(from: NSNumber(value: i))
+      print("report_I_Slider pos: \(pos)  i: \(i) Istring: \(Istring ?? "0")")
+      setI_Feld.stringValue  = Istring!
       let intpos = sender.intValue 
-      print("report_U_Slider")
-      teensy.write_byteArray[4] = UInt8((intpos & 0xFF00) >> 8) // hb
-      teensy.write_byteArray[5] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      self.setI_Stepper.floatValue = sender.floatValue
+      teensy.write_byteArray[6] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[7] = UInt8((intpos & 0x00FF) & 0xFF) // lb
       
       if (usbstatus > 0)
       {
          let senderfolg = teensy.send_USB()
       }
    }
+
+   @IBAction func report_I_Stepper(_ sender: NSStepper)
+   {
+      //teensy.write_byteArray[0] = SET_U // Code 
+      print("report_I_Stepper IntVal: \(sender.intValue)")
+      let I = setI_Feld.floatValue
+      
+      let pos = sender.floatValue
+      let u = pos / Float(sender.maxValue) * 5.12      
+      let Istring = formatter.string(from: NSNumber(value: u))
+      print("report_U_Stepper u: \(u) Istring: \(Istring ?? "0")")
+      setI_Feld.stringValue  = Istring!
+      let intpos = sender.intValue 
+      self.setI_Slider.floatValue = sender.floatValue
+      
+      teensy.write_byteArray[6] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[7] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      
+      if (usbstatus > 0)
+      {
+         let senderfolg = teensy.send_USB()
+         
+      }
+      
+   }
+
    
-   @IBAction func report_set_U(_ sender: AnyObject)
+   @IBAction func report_U_Slider(_ sender: NSSlider)
+   {
+      teensy.write_byteArray[0] = SET_U // Code 
+      print("report_U_Slider IntVal: \(sender.intValue)")
+      
+      let pos = sender.floatValue
+      let intpos = sender.intValue 
+      let u = (pos / Float(sender.maxValue)) * ADC_REF * U_DIVIDER  
+      let Ustring = formatter.string(from: NSNumber(value: u))
+      print("report_U_Slider pos: \(intpos)  u: \(u) Ustring: \(Ustring ?? "0")")
+      setU_Feld.stringValue  = Ustring!
+      
+      self.setU_Stepper.floatValue = sender.floatValue
+      //print("report_U_Slider")
+      teensy.write_byteArray[4] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[5] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      
+      if (usbstatus > 0)
+      {
+         let senderfolg = teensy.send_USB()
+         //print("report_U_Slider senderfolg: \(senderfolg)")
+      }
+   }
+   
+   @IBAction func report_U_Stepper(_ sender: NSStepper)
+   {
+      //teensy.write_byteArray[0] = SET_U // Code 
+      //print("report_U_Stepper IntVal: \(sender.intValue)")
+      let U = setU_Feld.floatValue
+      
+      let intpos = sender.intValue 
+      let pos = sender.floatValue
+      let u = (pos / Float(sender.maxValue)) * ADC_REF * U_DIVIDER      
+      let Ustring = formatter.string(from: NSNumber(value: u))
+      print("report_U_Stepper  pos: \(intpos)   u: \(u) Ustring: \(Ustring ?? "0")")
+      setU_Feld.stringValue  = Ustring!
+      
+      self.setU_Slider.floatValue = sender.floatValue
+   
+      teensy.write_byteArray[4] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[5] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      
+      if (usbstatus > 0)
+      {
+         let senderfolg = teensy.send_USB()
+         
+      }
+
+   }
+   
+   @IBAction func report_set_U(_ sender: NSTextField)
    {
       teensy.write_byteArray[0] = SET_U // Code 
       
@@ -176,7 +256,10 @@ class ViewController: NSViewController
       let U_LO = intU & 0x00FF
       //let U_LO = U * 1000 - 1000 * Float(U_HI)
       print("report_set_U U: \(U) U HI: \(U_HI) U LO: \(U_LO) ")
-      
+      let intpos = sender.intValue 
+      self.setU_Slider.floatValue = sender.floatValue
+      self.setU_Stepper.floatValue = sender.floatValue
+
       teensy.write_byteArray[2] = UInt8(U_LO)
       teensy.write_byteArray[3] = UInt8(U_HI)
       
@@ -237,12 +320,13 @@ class ViewController: NSViewController
          print("status 1")
          USB_OK.backgroundColor = NSColor.green
          print("USB-Device da")
+         /*
          let warnung = NSAlert.init()
          warnung.messageText = "USB"
          warnung.messageText = "USB-Device ist da"
          warnung.addButton(withTitle: "OK")
-         warnung.runModal()
-
+         //warnung.runModal()
+          */
          let manu = get_manu()
          //println(manu) // ok, Zahl
 //         var manustring = UnsafePointer<CUnsignedChar>(manu)

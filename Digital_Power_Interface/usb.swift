@@ -409,11 +409,11 @@ open class usb_teensy: NSObject
       }
       
       //println("write_byteArray: \(write_byteArray)")
-      print("write_byteArray in send_USB: ", terminator: "")
+//      print("write_byteArray in send_USB: ", terminator: "")
       
       for  i in 0...16
       {
-         print(" \(write_byteArray[i])", terminator: "\t")
+//         print(" \(write_byteArray[i])", terminator: "\t")
       }
       print("")
       
