@@ -109,7 +109,7 @@ open class usb_teensy: NSObject
    
    open func status()->Int32
    {
-      return hid_usbstatus
+      return get_hid_usbstatus()
    }
    
    open func dev_present()->Int32

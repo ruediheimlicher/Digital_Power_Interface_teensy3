@@ -162,7 +162,8 @@ static void free_all_hid(void)
 {
 	hid_t *p, *q;
    
-	for (p = first_hid; p; p = p->next) {
+	for (p = first_hid; p; p = p->next) 
+   {
 		hid_close(p);
 	}
 	p = first_hid;
@@ -210,7 +211,7 @@ const char* get_prod()
    }
    else 
    {
-      return "*\n";
+      return "***\n";
    }
 }
 
@@ -330,7 +331,8 @@ int rawhid_open(int max, int vid, int pid, int usage_page, int usage)
 	if (!hid_manager)
    {
       hid_manager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
-      if (hid_manager == NULL || CFGetTypeID(hid_manager) != IOHIDManagerGetTypeID()) {
+      if (hid_manager == NULL || CFGetTypeID(hid_manager) != IOHIDManagerGetTypeID()) 
+      {
          if (hid_manager) CFRelease(hid_manager);
          return 0;
       }
@@ -411,6 +413,12 @@ int rawhid_status(void)
    return hid_usbstatus;
 }
 
+int get_hid_usbstatus(void)
+{
+   //fprintf(stderr,"get_hid_usbstatus: %d\n",hid_usbstatus);
+   return hid_usbstatus;
+}
+
 /*
 static void input_callback(void *context, IOReturn ret, void *sender,
                            IOHIDReportType type, uint32_t id, uint8_t *data, CFIndex len)
@@ -453,7 +461,7 @@ void output_callback(void *context, IOReturn ret, void *sender,
 	fprintf(stderr,"output_callback, r=%d\n", ret);
 	if (ret == kIOReturnSuccess) 
    {
-		*(int *)context = len;
+		*(int *)context = (uint32_t)len;
 	} else {
 		// timeout if not success?
 		*(int *)context = 0;
@@ -475,7 +483,7 @@ static void input_callback(void *context, IOReturn ret, void *sender,
    if (!n) return;
    if (len > BUFFER_SIZE) len = BUFFER_SIZE;
    memcpy(n->buf, data, len);
-   n->len = len;
+   n->len = (uint32_t)len;
    n->next = NULL;
    if (!hid->first_buffer || !hid->last_buffer) {
       hid->first_buffer = hid->last_buffer = n;
@@ -483,6 +491,7 @@ static void input_callback(void *context, IOReturn ret, void *sender,
       hid->last_buffer->next = n;
       hid->last_buffer = n;
    }
+   //free(n);
    CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
@@ -491,12 +500,11 @@ static void detach_callback(void *context, IOReturn r, void *hid_mgr, IOHIDDevic
 {
 	hid_t *p;
    
-	//fprintf(stderr,"detach callback\n");
+	fprintf(stderr,"detach callback\n");
    hid_usbstatus=0;
 	for (p = first_hid; p; p = p->next) {
 		if (p->ref == dev) 
       {
-         
 			p->open = 0;
 			CFRunLoopStop(CFRunLoopGetCurrent());
 			return;
@@ -509,7 +517,7 @@ static void attach_callback(void *context, IOReturn r, void *hid_mgr, IOHIDDevic
 {
    struct hid_struct *h;
    
-	//fprintf(stderr,"attach callback\n");
+	fprintf(stderr,"attach callback\n");
    //
 	if (IOHIDDeviceOpen(dev, kIOHIDOptionsTypeNone) != kIOReturnSuccess) return;
 	h = (hid_t *)malloc(sizeof(hid_t));

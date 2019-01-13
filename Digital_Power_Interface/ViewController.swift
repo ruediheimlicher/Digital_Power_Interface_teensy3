@@ -158,9 +158,10 @@ class ViewController: NSViewController
       setI_Feld.stringValue  = Istring!
       let intpos = sender.intValue 
       self.setI_Stepper.floatValue = sender.floatValue
+
       teensy.write_byteArray[6] = UInt8((intpos & 0xFF00) >> 8) // hb
       teensy.write_byteArray[7] = UInt8((intpos & 0x00FF) & 0xFF) // lb
-      
+
       if (usbstatus > 0)
       {
          let senderfolg = teensy.send_USB()
@@ -187,9 +188,7 @@ class ViewController: NSViewController
       if (usbstatus > 0)
       {
          let senderfolg = teensy.send_USB()
-         
       }
-      
    }
 
    
@@ -238,9 +237,7 @@ class ViewController: NSViewController
       if (usbstatus > 0)
       {
          let senderfolg = teensy.send_USB()
-         
       }
-
    }
    
    @IBAction func report_set_U(_ sender: NSTextField)
@@ -293,7 +290,7 @@ class ViewController: NSViewController
       {
          let warnung = NSAlert.init()
          warnung.messageText = "USB"
-         warnung.messageText = "Kein USB-Device"
+         warnung.messageText = "report_start_read_USB: Kein USB-Device"
          warnung.addButton(withTitle: "OK")
          warnung.runModal()
          Start_Knopf.isEnabled = false
@@ -311,6 +308,19 @@ class ViewController: NSViewController
    
    @IBAction func check_USB(_ sender: NSButton)
    {
+      let hidstatus = teensy.status()
+      print("USBOpen usbstatus vor check: \(usbstatus) hidstatus: \(hidstatus)")
+      if (usbstatus > 0) // already open
+      {
+         print("USB-Device ist schon da")
+         let warnung = NSAlert.init()
+         warnung.messageText = "USB"
+         warnung.messageText = "USB-Device ist schon da"
+         warnung.addButton(withTitle: "OK")
+         warnung.runModal()
+        // return
+
+      }
       let erfolg = teensy.USBOpen()
       usbstatus = erfolg
       print("USBOpen erfolg: \(erfolg) usbstatus: \(usbstatus)")
@@ -346,13 +356,13 @@ class ViewController: NSViewController
          print("status 0")
          let warnung = NSAlert.init()
          warnung.messageText = "USB"
-         warnung.messageText = "Kein USB-Device"
+         warnung.messageText = "check_USB: Kein USB-Device"
          warnung.addButton(withTitle: "OK")
          warnung.runModal()
          
          if let taste = USB_OK
          {
-            print("Taste USB_OK ist nicht nil")
+            //print("Taste USB_OK ist nicht nil")
             taste.backgroundColor = NSColor.red
          //USB_OK.backgroundColor = NSColor.redColor()
             
@@ -396,7 +406,7 @@ class ViewController: NSViewController
       {
          let warnung = NSAlert.init()
          warnung.messageText = "USB"
-         warnung.messageText = "Kein USB-Device"
+         warnung.messageText = "send_USB: Kein USB-Device"
          warnung.addButton(withTitle: "OK")
          warnung.runModal()
          Send_Knopf.isEnabled = false
