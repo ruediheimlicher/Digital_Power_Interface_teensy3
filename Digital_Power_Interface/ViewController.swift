@@ -73,6 +73,8 @@ class ViewController: NSViewController
        formatter.minimumIntegerDigits = 1
       //formatter.roundingMode = .down
 
+      setU_Stepper.floatValue = setU_Feld.floatValue * 100
+      
       //USB_OK.backgroundColor = NSColor.greenColor()
       // Do any additional setup after loading the view.
       let newdataname = Notification.Name("newdata")
@@ -224,8 +226,9 @@ class ViewController: NSViewController
       
       let intpos = sender.intValue 
       let pos = sender.floatValue
-      let u = (pos / Float(sender.maxValue)) * ADC_REF * U_DIVIDER      
-      let Ustring = formatter.string(from: NSNumber(value: u))
+      //let u = (pos / Float(sender.maxValue)) * U_DIVIDER * ADC_REF   
+      let u = pos
+      let Ustring = formatter.string(from: NSNumber(value: u/100))
       print("report_U_Stepper  pos: \(intpos)   u: \(u) Ustring: \(Ustring ?? "0")")
       setU_Feld.stringValue  = Ustring!
       
@@ -246,16 +249,17 @@ class ViewController: NSViewController
       
       // senden mit faktor 1000
       //let u = setU_Feld.floatValue 
-      let U = setU_Feld.floatValue * 1000
+      let U = setU_Feld.floatValue * 100
       let intU = UInt(U)
       
       let U_HI = (intU & 0xFF00) >> 8
       let U_LO = intU & 0x00FF
+      
       //let U_LO = U * 1000 - 1000 * Float(U_HI)
       print("report_set_U U: \(U) U HI: \(U_HI) U LO: \(U_LO) ")
       let intpos = sender.intValue 
-      self.setU_Slider.floatValue = sender.floatValue
-      self.setU_Stepper.floatValue = sender.floatValue
+      self.setU_Slider.floatValue = U //sender.floatValue
+      self.setU_Stepper.floatValue = U //sender.floatValue
 
       teensy.write_byteArray[2] = UInt8(U_LO)
       teensy.write_byteArray[3] = UInt8(U_HI)
