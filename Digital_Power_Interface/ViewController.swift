@@ -52,6 +52,10 @@ class ViewController: NSViewController
 
    var formatter = NumberFormatter()
    
+   
+   let U_START = 5000 // mV
+   let I_START = 200 // mA
+   
    // const fuer USB
    let SET_U:UInt8 = 0xA1
    let SET_I:UInt8 = 0xB1
@@ -79,6 +83,17 @@ class ViewController: NSViewController
       // Do any additional setup after loading the view.
       let newdataname = Notification.Name("newdata")
       NotificationCenter.default.addObserver(self, selector:#selector(newDataAktion(_:)),name:newdataname,object:nil)
+      
+      
+      teensy.write_byteArray[4] = UInt8(((U_START/10) & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[5] = UInt8(((U_START/10) & 0x00FF) & 0xFF) // lb
+
+      teensy.write_byteArray[6] = UInt8(((I_START*10) & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[7] = UInt8(((I_START*10) & 0x00FF) & 0xFF) // lb
+      
+      
+
+      
    }
    
    @objc func newDataAktion(_ notification:Notification) 
