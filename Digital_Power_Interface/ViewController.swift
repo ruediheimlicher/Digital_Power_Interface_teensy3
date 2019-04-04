@@ -64,7 +64,13 @@ class ViewController: NSViewController
    
    let U_DIVIDER:Float = 9.8
    let ADC_REF:Float = 3.26
-  
+   
+   let U_byte_h = 4
+   let U_byte_l = 5
+
+   let I_byte_h = 6
+   let I_byte_l = 7
+
    
    override func viewDidLoad()
    {
@@ -85,11 +91,11 @@ class ViewController: NSViewController
       NotificationCenter.default.addObserver(self, selector:#selector(newDataAktion(_:)),name:newdataname,object:nil)
       
       
-      teensy.write_byteArray[4] = UInt8(((U_START/10) & 0xFF00) >> 8) // hb
-      teensy.write_byteArray[5] = UInt8(((U_START/10) & 0x00FF) & 0xFF) // lb
+      teensy.write_byteArray[U_byte_h] = UInt8(((U_START/10) & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[U_byte_l] = UInt8(((U_START/10) & 0x00FF) & 0xFF) // lb
 
-      teensy.write_byteArray[6] = UInt8(((I_START*10) & 0xFF00) >> 8) // hb
-      teensy.write_byteArray[7] = UInt8(((I_START*10) & 0x00FF) & 0xFF) // lb
+      teensy.write_byteArray[I_byte_h] = UInt8(((I_START*10) & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[I_byte_l] = UInt8(((I_START*10) & 0x00FF) & 0xFF) // lb
       
       
 
@@ -176,8 +182,8 @@ class ViewController: NSViewController
       let intpos = sender.intValue 
       self.setI_Stepper.floatValue = sender.floatValue
 
-      teensy.write_byteArray[6] = UInt8((intpos & 0xFF00) >> 8) // hb
-      teensy.write_byteArray[7] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      teensy.write_byteArray[I_byte_h] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[I_byte_l] = UInt8((intpos & 0x00FF) & 0xFF) // lb
 
       if (usbstatus > 0)
       {
@@ -199,8 +205,8 @@ class ViewController: NSViewController
       let intpos = sender.intValue 
       self.setI_Slider.floatValue = sender.floatValue
       
-      teensy.write_byteArray[6] = UInt8((intpos & 0xFF00) >> 8) // hb
-      teensy.write_byteArray[7] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      teensy.write_byteArray[I_byte_h] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[I_byte_l] = UInt8((intpos & 0x00FF) & 0xFF) // lb
       
       if (usbstatus > 0)
       {
@@ -223,8 +229,8 @@ class ViewController: NSViewController
       
       self.setU_Stepper.floatValue = sender.floatValue
       //print("report_U_Slider")
-      teensy.write_byteArray[4] = UInt8((intpos & 0xFF00) >> 8) // hb
-      teensy.write_byteArray[5] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      teensy.write_byteArray[U_byte_h] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[U_byte_l] = UInt8((intpos & 0x00FF) & 0xFF) // lb
       
       if (usbstatus > 0)
       {
@@ -249,8 +255,8 @@ class ViewController: NSViewController
       
       self.setU_Slider.floatValue = sender.floatValue
    
-      teensy.write_byteArray[4] = UInt8((intpos & 0xFF00) >> 8) // hb
-      teensy.write_byteArray[5] = UInt8((intpos & 0x00FF) & 0xFF) // lb
+      teensy.write_byteArray[U_byte_h] = UInt8((intpos & 0xFF00) >> 8) // hb
+      teensy.write_byteArray[U_byte_l] = UInt8((intpos & 0x00FF) & 0xFF) // lb
       
       if (usbstatus > 0)
       {
@@ -276,8 +282,8 @@ class ViewController: NSViewController
       self.setU_Slider.floatValue = U //sender.floatValue
       self.setU_Stepper.floatValue = U //sender.floatValue
 
-      teensy.write_byteArray[2] = UInt8(U_LO)
-      teensy.write_byteArray[3] = UInt8(U_HI)
+      teensy.write_byteArray[U_byte_h] = UInt8(U_LO)
+      teensy.write_byteArray[U_byte_l] = UInt8(U_HI)
       
        if (usbstatus > 0)
        {
