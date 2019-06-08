@@ -50,6 +50,11 @@ class ViewController: NSViewController
    @IBOutlet weak var setI_Slider: NSSlider!
    @IBOutlet weak var setI_Stepper: NSStepper!
 
+   @IBOutlet weak var setP_Feld: NSTextField!
+   @IBOutlet weak var P_Feld: NSTextField!
+   @IBOutlet weak var setP_Slider: NSSlider!
+   
+
    var formatter = NumberFormatter()
    
    
@@ -61,6 +66,10 @@ class ViewController: NSViewController
    let SET_I:UInt8 = 0xB1
    let GET_U:UInt8 = 0xA2
    let GET_I:UInt8 = 0xB2
+   
+   let SET_P:UInt8 = 0xA3
+   let GET_P:UInt8 = 0xB3
+
    
    let U_DIVIDER:Float = 9.8
    let ADC_REF:Float = 3.26
@@ -79,7 +88,7 @@ class ViewController: NSViewController
       _ = Hello()
  
       formatter.maximumFractionDigits = 1
-      formatter.minimumFractionDigits = 1
+      formatter.minimumFractionDigits = 2
        formatter.minimumIntegerDigits = 1
       //formatter.roundingMode = .down
 
@@ -102,6 +111,9 @@ class ViewController: NSViewController
       
    }
    
+ 
+ 
+ 
    @objc func newDataAktion(_ notification:Notification) 
    {
       let lastData = teensy.getlastDataRead()
@@ -294,6 +306,26 @@ class ViewController: NSViewController
          }
       }
    }
+   
+   @IBAction func report_P_Slider(_ sender: NSSlider)
+   {
+      teensy.write_byteArray[0] = SET_P // Code 
+      print("report_P_Slider IntVal: \(sender.intValue)")
+      
+      let pos = sender.floatValue
+      let p = pos / Float(sender.maxValue) * 5.12
+      let Pstring = formatter.string(from: NSNumber(value: p))
+    //  print("report_U_Slider pos: \(intpos)  u: \(u) Ustring: \(Ustring ?? "0")")
+
+      print("report_P_Slider p: \(p) Pstring: \(Pstring ?? "0")")
+      setP_Feld.stringValue  = Pstring!
+      let intpos = sender.intValue 
+      teensy.write_byteArray[U_byte_h] = UInt8((intpos & 0x00FF) & 0xFF)
+      teensy.write_byteArray[U_byte_l] = UInt8((intpos & 0xFF00) >> 8)
+      _ = teensy.send_USB()
+      
+   }
+
 
    @IBAction func report_set_I(_ sender: AnyObject)
    {
@@ -301,12 +333,14 @@ class ViewController: NSViewController
    }
 
    
+   
+   
    @IBAction func report_start_read_USB(_ sender: AnyObject)
    {
       //myUSBController.startRead(1)
       if teensy.dev_present() > 0
       {
-         teensy.start_read_USB(true)
+         var start_read_USB_erfolg = teensy.start_read_USB(true)
          Start_Knopf.isEnabled = false
          Stop_Knopf.isEnabled = true
 
@@ -334,6 +368,7 @@ class ViewController: NSViewController
    @IBAction func check_USB(_ sender: NSButton)
    {
       let hidstatus = teensy.status()
+      
       print("USBOpen usbstatus vor check: \(usbstatus) hidstatus: \(hidstatus)")
       if (usbstatus > 0) // already open
       {
