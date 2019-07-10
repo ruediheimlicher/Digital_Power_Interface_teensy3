@@ -316,6 +316,11 @@ open class usb_teensy: NSObject
             {
                print(" \(read_byteArray[i])", terminator: "")
             }
+            print("32-36")
+            for  i in 32...36
+            {
+               print(" \(read_byteArray[i])", terminator: "")
+            }
             print("")
 
             // http://dev.iachieved.it/iachievedit/notifications-and-userinfo-with-swift-3-0/
