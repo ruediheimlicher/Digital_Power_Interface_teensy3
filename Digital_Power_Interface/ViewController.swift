@@ -247,7 +247,7 @@ class ViewController: NSViewController
       if (usbstatus > 0)
       {
          let senderfolg = teensy.send_USB()
-         //print("report_U_Slider senderfolg: \(senderfolg)")
+         print("report_U_Slider senderfolg: \(senderfolg)")
       }
    }
    
